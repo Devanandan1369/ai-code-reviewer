@@ -1,20 +1,20 @@
-# Use a lightweight official Python image as a base
+# Use official Python image
 FROM python:3.10-slim
 
-# Set the working directory inside the container
+# Set working directory
 WORKDIR /app
 
-# 1. Copy *only* the requirements file first
-# (This caches dependencies and speeds up future builds)
+# Copy requirements
 COPY requirements.txt .
 
-# 2. Install the dependencies
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 3. Copy the rest of your application code into the image
+# Copy app files
 COPY . .
 
-# NOTE: We are NOT adding a CMD or ENTRYPOINT here.
-# Why? Because we will use this ONE image to run
-# THREE different commands (uvicorn, celery, streamlit)
-# which we will specify in the docker-compose.yml file.
+# Expose port (Render uses PORT env)
+EXPOSE 10000
+
+# Streamlit needs to listen on 0.0.0.0 and the PORT Render provides
+CMD ["sh", "-c", "streamlit run app.py --server.port=$PORT --server.address=0.0.0.0"]
