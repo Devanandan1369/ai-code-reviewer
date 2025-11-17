@@ -11,10 +11,6 @@ You give it a link to a GitHub pull request, and it:
 
 ##  How to Run This Project (The Easy Way)
 
-The application is deployed at : 
-https://ai-code-reviewer-mojd.onrender.com/
-
-
 Also, you can setup it yourself as explained below:
 
 This whole project is packed into "Docker," which means you can run all its different parts with one single command.
