@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Service 1: The Redis Database
+  redis:
+    image: "redis:alpine"
+    # The hostname "redis" is how other services will find it
+    hostname: redis
+
+  # Service 2: The FastAPI API
+  api:
+    build: .  # Build from the Dockerfile in this directory
+    env_file:
+      - .env  # Pass in the GROQ_API_KEY
+    environment:
+      # This OVERRIDES the default in the code
+      - REDIS_URL=redis://redis:6379/0
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000" # Map host port 8000 to container port 8000
+    depends_on:
+      - redis
+
+  # Service 3: The Celery Worker
+  worker:
+    build: .
+    env_file:
+      - .env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    command: celery -A celery_worker.celery_app worker --loglevel=info --pool=solo
+    depends_on:
+      - redis
+
+  # Service 4: The Streamlit UI
+  ui:
+    build: .
+    env_file: 
+      - .env
+    environment:  # <-- THIS SECTION IS NEW/UPDATED
+      # This tells Streamlit the address of the API inside Docker
+      - API_URL=http://api:8000
+    command: streamlit run app.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501" # Map host port 8501 to container port 8501
+    depends_on:
+      - api # Wait for the API to be ready
